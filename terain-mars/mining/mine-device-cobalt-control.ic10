@@ -1,0 +1,136 @@
+#terain-mars/mining/mine-device-cobalt-control.ic10
+define idx 5
+define MAXxTIMExCONST $FFFFFFFF
+alias Input.RID d0
+alias ProductionTime r0
+alias Output.RID r1
+alias TimeCounter r2
+alias Timeout r3
+alias Silo.RID r4
+alias Centrifuge.RID r5 
+alias Idx r6
+alias Return r7
+
+define CENTRIFUGExUPxLIMIT 200
+define CENTRIFUGExLOWxLIMIT 3
+define LxTRANS HASH("StructureLogicTransmitter")
+define DMN HASH("StructureDeepMiner")
+define SILOxHASH HASH("StructureSDBSilo")
+define CENTRIFUGExHASH HASH("StructureCentrifuge")
+lbn Output.RID LxTRANS HASH("mine-cobalt-wifi-out") ReferenceId Minimum
+lbn Silo.RID SILOxHASH HASH("mine-cobalt-vending") ReferenceId Minimum
+move ProductionTime 0
+move TimeCounter 0
+move Timeout 0
+jal collectcentrifuges
+jal calculateTimeout
+jal claibrate
+
+main:
+    sleep 1
+    jal controlMiner
+    jal siloQuantity
+    jal checkCentrifuges
+    jal conctrolLight
+j main
+
+collectcentrifuges:
+    lbn Centrifuge.RID CENTRIFUGExHASH HASH("mine-cobalt-centrifuge1") ReferenceId Minimum
+    put db 10 Centrifuge.RID 
+    lbn Centrifuge.RID CENTRIFUGExHASH HASH("mine-cobalt-centrifuge2") ReferenceId Minimum
+    put db 11 Centrifuge.RID
+    lbn Centrifuge.RID CENTRIFUGExHASH HASH("mine-cobalt-centrifuge3") ReferenceId Minimum
+    put db 12 Centrifuge.RID
+    lbn Centrifuge.RID CENTRIFUGExHASH HASH("mine-cobalt-centrifuge4") ReferenceId Minimum
+    put db 13 Centrifuge.RID
+    lbn Centrifuge.RID CENTRIFUGExHASH HASH("mine-cobalt-centrifuge5") ReferenceId Minimum
+    put db 14 Centrifuge.RID
+j ra
+
+checkCentrifuges:
+    move Return ra
+    move Idx 10
+      get Centrifuge.RID db Idx
+      jal checkCentrifuge
+      add Idx Idx 1
+    brle Idx 14 -3
+    move ra Return
+j ra
+
+conctrolLight:
+    lb r15 HASH("StructureDaylightSensor") Activate Minimum
+    seqz r15 r15
+    sb HASH("StructureWallLight") On r15 
+j ra
+
+checkCentrifuge:
+    l r15 Centrifuge.RID Open
+    l r14 Centrifuge.RID Reagents 
+    beqz r15 centrifugeisClosed 
+centrifugeisOpen:
+    bgt r14 CENTRIFUGExLOWxLIMIT ra
+    s Centrifuge.RID Open 0
+    j ra
+centrifugeisClosed:
+    ble r14 CENTRIFUGExUPxLIMIT ra
+    s Centrifuge.RID Open 1
+j ra
+
+controlMiner:
+    move Return ra
+    add TimeCounter TimeCounter 1
+    min TimeCounter TimeCounter MAXxTIMExCONST
+    s db Setting TimeCounter
+    jal calculateTimeout
+    beqzal Timeout switchOff
+    beqzal Timeout setCounterToMax
+    beqz Timeout Return
+    breq Timeout ProductionTime 3 #In case of timeout equal to ProductionTime no pause  
+        lbn r15 DMN HASH("mine-cobalt-dev1") ExportCount Minimum
+        bnezal r15 switchOff
+    bgeal TimeCounter Timeout switchOn 
+    move ra Return
+j ra
+
+setCounterToMax:
+    move TimeCounter MAXxTIMExCONST
+j ra
+
+switchOn:
+    sb DMN On 1
+    move TimeCounter 0
+j ra
+
+switchOff:
+    sb DMN On 0
+    sb DMN ClearMemory 1
+    yield
+j ra
+
+calculateTimeout:
+    l r15 Input.RID Setting
+    move r14 idx
+    mul r14 r14 4
+    srl r15 r15 r14
+    and r15 r15 $F
+    mul Timeout r15 ProductionTime
+j ra
+
+siloQuantity:
+    l r15 Silo.RID Quantity
+    s Output.RID Setting r15
+j ra
+
+claibrate:
+    lbn r15 DMN HASH("mine-cobalt-dev1") ReferenceId Minimum
+    s r15 On 0
+    s r15 ClearMemory 1
+    yield
+    s r15 On 1
+    claibrateCycle:
+        sleep 1
+        add ProductionTime ProductionTime 1
+        l r14 r15 ExportCount
+    beqz r14 claibrateCycle
+    s r15 ClearMemory 1
+j ra

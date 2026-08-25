@@ -20,10 +20,15 @@ push $8492A #DSP
 push $84927 #Dial
 push 3  #Index
 #Nickel
-push $F3FFD #WIFI-Input
+push $11389F #WIFI-Input
 push $113722 #DSP
 push $113465 #Dial
 push 4  #Index
+#Cobalt
+push $8ADD7 #WIFI-Input
+push $236A43 #DSP
+push $236DDD #Dial
+push 5  #Index
 
 alias List r0
 move List sp

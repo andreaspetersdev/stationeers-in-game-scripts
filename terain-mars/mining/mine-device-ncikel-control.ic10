@@ -1,20 +1,19 @@
 #terain-mars/mining/mine-device-ncikel-control.ic10
 define idx 4
 define MAXxTIMExCONST $FFFFFFFF
-alias Mining.RID r0
 alias Input.RID d0
-alias ProductionTime r1
-alias Output.RID r2
-alias TimeCounter r3
-alias Timeout r4
-alias Silo.RID r5
-alias Furnace.RID r6
-alias Centrifuge1.RID r7
-alias Centrifuge2.RID r8
-alias Centrifuge.RID r9
-alias Return r11
-alias Sorter r12
-alias Ingot r13
+alias ProductionTime r0
+alias Output.RID r1
+alias TimeCounter r2
+alias Timeout r3
+alias Silo.RID r4
+alias Furnace.RID r5
+alias Centrifuge.RID r6 
+alias Sorter r7
+alias Ingot r8
+alias Return r9
+alias Return2 r10
+alias Index r11
 define CENTRIFUGExUPxLIMIT 200
 define CENTRIFUGExLOWxLIMIT 3
 define LxTRANS HASH("StructureLogicTransmitter")
@@ -22,15 +21,13 @@ define DMN HASH("StructureDeepMiner")
 define SILOxHASH HASH("StructureSDBSilo")
 define FURNACExHASH HASH("StructureArcFurnace")
 define CENTRIFUGExHASH HASH("StructureCentrifuge")
-lbn Mining.RID DMN HASH("mine-ncikel-dev") ReferenceId Minimum
 lbn Output.RID LxTRANS HASH("mine-nickel-wifi-out") ReferenceId Minimum
 lbn Silo.RID SILOxHASH HASH("mine-nickel-vending") ReferenceId Minimum
 lbn Furnace.RID FURNACExHASH HASH("mine-nickel-furnace") ReferenceId Minimum
-lbn Centrifuge1.RID CENTRIFUGExHASH HASH("mine-nickel-centrifuge1") ReferenceId Minimum
-lbn Centrifuge2.RID CENTRIFUGExHASH HASH("mine-nickel-centrifuge2") ReferenceId Minimum
 move ProductionTime 0
 move TimeCounter 0
 move Timeout 0
+jal collectcentrifuges
 jal setupSorters
 jal calculateTimeout
 jal claibrate
@@ -40,16 +37,38 @@ main:
     jal controlMiner
     jal siloQuantity
     jal checkFurnace
-    move Centrifuge.RID Centrifuge1.RID
-    jal checkCentrifuge
-    move Centrifuge.RID Centrifuge2.RID
-    jal checkCentrifuge
+    jal checkCentrifuges
     jal conctrolLight
 j main
 
+collectcentrifuges:
+    lbn Centrifuge.RID CENTRIFUGExHASH HASH("mine-nickel-centrifuge1") ReferenceId Minimum
+    put db 10 Centrifuge.RID 
+    lbn Centrifuge.RID CENTRIFUGExHASH HASH("mine-nickel-centrifuge2") ReferenceId Minimum
+    put db 11 Centrifuge.RID
+    lbn Centrifuge.RID CENTRIFUGExHASH HASH("mine-nickel-centrifuge3") ReferenceId Minimum
+    put db 12 Centrifuge.RID
+    lbn Centrifuge.RID CENTRIFUGExHASH HASH("mine-nickel-centrifuge4") ReferenceId Minimum
+    put db 13 Centrifuge.RID
+    lbn Centrifuge.RID CENTRIFUGExHASH HASH("mine-nickel-centrifuge5") ReferenceId Minimum
+    put db 14 Centrifuge.RID
+    lbn Centrifuge.RID CENTRIFUGExHASH HASH("mine-nickel-centrifuge6") ReferenceId Minimum
+    put db 15 Centrifuge.RID
+j ra
+
+checkCentrifuges:
+    move Return ra
+    move Index 10
+      get Centrifuge.RID db Index
+      jal checkCentrifuge
+      add Index Index 1
+    brle Index 15 -3
+    move ra Return
+j ra
+
 conctrolLight:
     lb r15 HASH("StructureDaylightSensor") Activate Minimum
-    snez r15 r15
+    seqz r15 r15
     sb HASH("StructureWallLight") On r15 
 j ra
 
@@ -82,7 +101,7 @@ controlMiner:
     beqzal Timeout setCounterToMax
     beqz Timeout Return
     breq Timeout ProductionTime 3 #In case of timeout equal to ProductionTime no pause  
-        l r15 Mining.RID ExportCount
+        lbn r15 DMN HASH("mine-ncikel-dev1") ExportCount Minimum
         bnezal r15 switchOff
     bgeal TimeCounter Timeout switchOn 
     move ra Return
@@ -93,13 +112,13 @@ setCounterToMax:
 j ra
 
 switchOn:
-    s Mining.RID On 1
+    sb DMN On 1
     move TimeCounter 0
 j ra
 
 switchOff:
-    s Mining.RID On 0
-    s Mining.RID ClearMemory 1
+    sb DMN On 0
+    sb DMN ClearMemory 1
     yield
 j ra
 
@@ -118,16 +137,17 @@ siloQuantity:
 j ra
 
 claibrate:
-    s Mining.RID On 0
-    s Mining.RID ClearMemory 1
+    lbn r15 DMN HASH("mine-ncikel-dev1") ReferenceId Minimum
+    s r15 On 0
+    s r15 ClearMemory 1
     yield
-    s Mining.RID On 1
+    s r15 On 1
     claibrateCycle:
         sleep 1
         add ProductionTime ProductionTime 1
-        l r15 Mining.RID ExportCount
-    beqz r15 claibrateCycle
-    s Mining.RID ClearMemory 1
+        l r14 r15 ExportCount
+    beqz r14 claibrateCycle
+    s r15 ClearMemory 1
 j ra
 
 setupSorters:
