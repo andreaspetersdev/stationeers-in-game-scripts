@@ -8,13 +8,17 @@
 #   atm-quality-vent3 - powered vent, enabled only for hard response
 define GasSNS HASH("StructureGasSensor")
 define SensorName HASH("atm-quality-sns")
+define ALARMxLIGHTxHASH HASH("StructureFlashingLight")
+define ALARMxSOUNDxHASH HASH("StructureKlaxon")
+define ALARMxLIGHTxNAME HASH("atm-alarm-light")
+define ALARMxSOUNDxNAME HASH("atm-alarm-sound")
 
 define CO2xLIMIT 0.05
-define POLUTANTxLIMIT 0.0005
-define OTHERxLIMIT 0
+define POLUTANTxLIMIT 0
+define METHANExLIMIT 0
 define O2xLIMIT 0.30
 define PRESSURExLIMIT 110 # 110 kPa
-define UNKNOWNxLIMIT 0.0005
+define UNKNOWNxLIMIT 0.000001 # Ignore ratio rounding (1 ppm)
 
 define IDLE 0
 define SLOW 1
@@ -35,6 +39,8 @@ alias PumpStep1.on r8
 alias PumpStep1.set r9
 alias PumpStep2.on r10
 alias VentStep3.on r11
+alias Alarm.old r12
+alias Alarm.new r13
 
 lbn PumpStep1.rid HASH("StructureTurboVolumePump") HASH("atm-quality-pump1") ReferenceId Minimum
 lbn PumpStep2.rid HASH("StructureTurboVolumePump") HASH("atm-quality-pump2") ReferenceId Minimum
@@ -47,11 +53,15 @@ move VentStep3.on 1
 
 move State IDLE
 jal controlPumps
+move Alarm.old -1
+move Alarm.new 0
+jal setAlarm
 
 main:
     sleep 1
     move Rest 1.0
     move State IDLE
+    move Alarm.new 0
     # Pressure above the room limit increases the response level.
     lbn r15 GasSNS SensorName Pressure Average
     sub r15 r15 PRESSURExLIMIT
@@ -75,24 +85,46 @@ main:
     move Step3 0.15
     move Step4 0.2
     jal calculateState
-    # Pollutants above the limit increase the response level.
+    # Any pollutant starts cleanup.
     lbn r15 GasSNS SensorName RatioPollutant Average
     sub Rest Rest r15
     sub r15 r15 POLUTANTxLIMIT
+    max Alarm.new Alarm.new r15
     move Step2 0.001 
     move Step3 0.01
     move Step4 0.1
     jal calculateState
-    # Treat the remaining non-nitrogen balance as unknown gas content.
+    # Methane starts cleanup immediately and escalates quickly.
+    lbn r15 GasSNS SensorName RatioMethane Average
+    sub Rest Rest r15
+    sub r15 r15 METHANExLIMIT
+    max Alarm.new Alarm.new r15
+    move Step2 0.0005
+    move Step3 0.001
+    move Step4 0.005
+    jal calculateState
+    # Ignore negative balance; treat positive remainder as unknown gas.
     lbn r15 GasSNS SensorName RatioNitrogen Average
     sub r15 Rest r15
     sub r15 r15 UNKNOWNxLIMIT
-    move Step2 0.001 
-    move Step3 0.005
-    move Step4 0.01
+    max r15 r15 0
+    max Alarm.new Alarm.new r15
+    move Step2 0.0005
+    move Step3 0.001
+    move Step4 0.005
     jal calculateState
     jal controlPumps
+    sgtz Alarm.new Alarm.new
+    bneal Alarm.new Alarm.old setAlarm
 j main
+
+setAlarm:
+    sbn ALARMxLIGHTxHASH ALARMxLIGHTxNAME On Alarm.new
+    select r15 Alarm.new 43 0
+    sbn ALARMxSOUNDxHASH ALARMxSOUNDxNAME Mode r15
+    sbn ALARMxSOUNDxHASH ALARMxSOUNDxNAME On Alarm.new
+    move Alarm.old Alarm.new
+j ra
 
 calculateState:
 # Escalate to the highest required state based on the current deviation.
