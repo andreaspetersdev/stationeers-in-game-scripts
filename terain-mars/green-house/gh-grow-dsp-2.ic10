@@ -75,6 +75,59 @@ setupTrays:
     move Tray.rid HASH("ch2-tr44-dev")
     move Led.rid HASH("ch2-tr44-led")
     jal discoverTrays
+
+    move Tray.rid HASH("ch2-tr51-dev")
+    move Led.rid HASH("ch2-tr51-led")
+    jal discoverTrays
+    move Tray.rid HASH("ch2-tr52-dev")
+    move Led.rid HASH("ch2-tr52-led")
+    jal discoverTrays
+    move Tray.rid HASH("ch2-tr53-dev")
+    move Led.rid HASH("ch2-tr53-led")
+    jal discoverTrays
+    move Tray.rid HASH("ch2-tr54-dev")
+    move Led.rid HASH("ch2-tr54-led")
+    jal discoverTrays
+
+    move Tray.rid HASH("ch2-tr61-dev")
+    move Led.rid HASH("ch2-tr61-led")
+    jal discoverTrays
+    move Tray.rid HASH("ch2-tr62-dev")
+    move Led.rid HASH("ch2-tr62-led")
+    jal discoverTrays
+    move Tray.rid HASH("ch2-tr63-dev")
+    move Led.rid HASH("ch2-tr63-led")
+    jal discoverTrays
+    move Tray.rid HASH("ch2-tr64-dev")
+    move Led.rid HASH("ch2-tr64-led")
+    jal discoverTrays
+
+    move Tray.rid HASH("ch2-tr71-dev")
+    move Led.rid HASH("ch2-tr71-led")
+    jal discoverTrays
+    move Tray.rid HASH("ch2-tr72-dev")
+    move Led.rid HASH("ch2-tr72-led")
+    jal discoverTrays
+    move Tray.rid HASH("ch2-tr73-dev")
+    move Led.rid HASH("ch2-tr73-led")
+    jal discoverTrays
+    move Tray.rid HASH("ch2-tr74-dev")
+    move Led.rid HASH("ch2-tr74-led")
+    jal discoverTrays
+
+    move Tray.rid HASH("ch2-tr81-dev")
+    move Led.rid HASH("ch2-tr81-led")
+    jal discoverTrays
+    move Tray.rid HASH("ch2-tr82-dev")
+    move Led.rid HASH("ch2-tr82-led")
+    jal discoverTrays
+    move Tray.rid HASH("ch2-tr83-dev")
+    move Led.rid HASH("ch2-tr83-led")
+    jal discoverTrays
+    move Tray.rid HASH("ch2-tr84-dev")
+    move Led.rid HASH("ch2-tr84-led")
+    jal discoverTrays
+
     sub Count sp Count
     move ra Return
 j ra

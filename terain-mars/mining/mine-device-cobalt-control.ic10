@@ -45,6 +45,10 @@ collectcentrifuges:
     put db 13 Centrifuge.RID
     lbn Centrifuge.RID CENTRIFUGExHASH HASH("mine-cobalt-centrifuge5") ReferenceId Minimum
     put db 14 Centrifuge.RID
+    lbn Centrifuge.RID CENTRIFUGExHASH HASH("mine-cobalt-centrifuge6") ReferenceId Minimum
+    put db 15 Centrifuge.RID
+    lbn Centrifuge.RID CENTRIFUGExHASH HASH("mine-cobalt-centrifuge7") ReferenceId Minimum
+    put db 16 Centrifuge.RID
 j ra
 
 checkCentrifuges:
@@ -53,7 +57,7 @@ checkCentrifuges:
       get Centrifuge.RID db Idx
       jal checkCentrifuge
       add Idx Idx 1
-    brle Idx 14 -3
+    brle Idx 16 -3
     move ra Return
 j ra
 

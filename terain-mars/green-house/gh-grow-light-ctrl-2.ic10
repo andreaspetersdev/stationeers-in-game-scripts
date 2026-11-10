@@ -149,6 +149,26 @@ setup:
     move Dial.rid HASH("gh2-glight-dial4")
     jal discoverRids
 
+    move Light.rid HASH("gh2-glight-dev5")
+    move Switch.rid HASH("gh2-glight-sw5")
+    move Dial.rid HASH("gh2-glight-dial5")
+    jal discoverRids
+
+    move Light.rid HASH("gh2-glight-dev6")
+    move Switch.rid HASH("gh2-glight-sw6")
+    move Dial.rid HASH("gh2-glight-dial6")
+    jal discoverRids
+
+    move Light.rid HASH("gh2-glight-dev7")
+    move Switch.rid HASH("gh2-glight-sw7")
+    move Dial.rid HASH("gh2-glight-dial7")
+    jal discoverRids
+
+    move Light.rid HASH("gh2-glight-dev8")
+    move Switch.rid HASH("gh2-glight-sw8")
+    move Dial.rid HASH("gh2-glight-dial8")
+    jal discoverRids
+
     sub Count sp Count
     lbn Sensor.rid Sensor.hash Sensor.name ReferenceId Minimum
     l isDay Sensor.rid Activate
